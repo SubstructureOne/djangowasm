@@ -1,0 +1,80 @@
+<head>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"></script>
+    <script>
+        async function main() {
+            let pyodide = await loadPyodide()
+            await pyodide.loadPackage('micropip')
+            const micropip = pyodide.pyimport('micropip')
+            await micropip.install('django')
+            console.log("Installing django...")
+            console.log(pyodide.runPython(`
+                import sys
+                import django
+                f'Django installed: {sys.version}'
+            `))
+            await pyodide.runPythonAsync(`
+                from pyodide.http import pyfetch
+                response = await pyfetch('/djangosample.zip')
+                await response.unpack_archive()
+            `)
+            // console.log(pyodide.runPython(`
+            //     import djangosample.wsgi
+            //     app = djangosample.wsgi.application
+            //     print(app)
+            // `))
+            let html = pyodide.runPython(`
+from io import StringIO
+
+from djangosample.wsgi import application
+
+inputstream = StringIO()
+errorstream = StringIO()
+
+env = {
+    'REQUEST_METHOD': 'GET',
+    'SCRIPT_NAME': '',
+    'PATH_INFO': '/polls/',
+    'QUERY_STRING': '',
+    'CONTENT_TYPE': '',
+    'CONTENT_LENGTH': '',
+    'SERVER_NAME': 'localhost',
+    'SERVER_PORT': '8080',
+    'SERVER_PROTOCOL': 'HTTP/1.1',
+    'wsgi.version': (1,0),
+    'wsgi.url_scheme': 'http',
+    'wsgi.input': inputstream,
+    'wsgi.error': errorstream,
+    'wsgi.multithreaded': False,
+    'wsgi.multiprocess': False,
+    'wsgi.run_once': True,
+}
+
+
+def write_callable(bytestring):
+    print(f'Bytestring: {bytestring}')
+    # pass
+
+
+def start_response(status, response_headers, exc_info=None):
+    print(f'Status: {status}')
+    print(f'Response headers: {response_headers}')
+    if exc_info is not None:
+        print(f'exc_info: {exc_info}')
+    return write_callable
+
+
+print(f'Calling Django application via WSGI...')
+result = application(env, start_response)
+print(f'Result:')
+final_result = b''
+for line in result:
+    print(line)
+    final_result += line
+final_result.decode()
+            `)
+            // console.log(html)
+            document.documentElement.innerHTML = html
+        }
+        main();
+    </script>
+</head>
