@@ -14,7 +14,7 @@
             `))
             await pyodide.runPythonAsync(`
                 from pyodide.http import pyfetch
-                response = await pyfetch('/djangosample.zip')
+                response = await pyfetch('/static/djangosample.zip')
                 await response.unpack_archive()
             `)
             // console.log(pyodide.runPython(`
@@ -33,12 +33,12 @@ errorstream = StringIO()
 env = {
     'REQUEST_METHOD': 'GET',
     'SCRIPT_NAME': '',
-    'PATH_INFO': '/polls/',
-    'QUERY_STRING': '',
+    'PATH_INFO': '${window.location.pathname}',
+    'QUERY_STRING': '${window.location.search}',
     'CONTENT_TYPE': '',
     'CONTENT_LENGTH': '',
-    'SERVER_NAME': 'localhost',
-    'SERVER_PORT': '8080',
+    'SERVER_NAME': '${window.location.hostname}',
+    'SERVER_PORT': '${window.location.port}',
     'SERVER_PROTOCOL': 'HTTP/1.1',
     'wsgi.version': (1,0),
     'wsgi.url_scheme': 'http',
@@ -46,7 +46,7 @@ env = {
     'wsgi.error': errorstream,
     'wsgi.multithreaded': False,
     'wsgi.multiprocess': False,
-    'wsgi.run_once': True,
+    'wsgi.run_once': False,
 }
 
 

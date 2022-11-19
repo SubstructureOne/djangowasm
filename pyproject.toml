@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "djangowasm"
+version = "0.1.0"
+description = ""
+authors = ["dek <dek@substructure.one>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+flask = "^2.2.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
