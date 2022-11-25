@@ -75,10 +75,18 @@ WSGI_APPLICATION = 'djangosample.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django_postgresql_pure',
+        'NAME': 'djangosample',
+        'USER': 'postgres',
+        'PASSWORD': 'pw',
+        'HOST': '127.0.0.1',
+        'PORT': '6432',
+        'WEBSOCKET': True,
     }
 }
+
 
 
 # Password validation

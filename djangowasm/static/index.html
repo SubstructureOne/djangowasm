@@ -1,4 +1,6 @@
+<html lang="en">
 <head>
+    <title>Loading...</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"></script>
     <script>
         async function main() {
@@ -22,7 +24,7 @@
             //     app = djangosample.wsgi.application
             //     print(app)
             // `))
-            let html = pyodide.runPython(`
+            const html = pyodide.runPython(`
 from io import StringIO
 
 from djangosample.wsgi import application
@@ -78,3 +80,8 @@ final_result.decode()
         main();
     </script>
 </head>
+
+<body>
+<h1>Loading...</h1>
+</body>
+</html>
