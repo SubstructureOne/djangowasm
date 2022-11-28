@@ -81,9 +81,9 @@ DATABASES = {
         'NAME': 'djangosample',
         'USER': 'postgres',
         'PASSWORD': 'pw',
-        'HOST': '127.0.0.1',
-        'PORT': '6432',
-        'WEBSOCKET': True,
+        # 'HOST': '127.0.0.1',
+        # 'PORT': '6432',
+        'URI': 'ws://localhost:6432',
     }
 }
 

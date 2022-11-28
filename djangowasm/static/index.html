@@ -8,7 +8,7 @@
             await pyodide.loadPackage('micropip')
             const micropip = pyodide.pyimport('micropip')
             await micropip.install('django')
-            console.log("Installing django...")
+            await micropip.install('django_postgresql_pure')
             console.log(pyodide.runPython(`
                 import sys
                 import django

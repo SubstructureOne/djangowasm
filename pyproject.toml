@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 flask = "^2.2.2"
+django-postgresql-ws = {git = "github.com:SubstructureOne/django-postgresql-pure.git", rev = "main"}
 
 
 [build-system]
