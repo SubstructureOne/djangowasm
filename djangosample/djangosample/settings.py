@@ -77,7 +77,7 @@ DATABASES = {
     'default': {
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': BASE_DIR / 'db.sqlite3',
-        'ENGINE': 'django_postgresql_pure',
+        'ENGINE': 'django_postgresql_ws',
         'NAME': 'djangosample',
         'USER': 'postgres',
         'PASSWORD': 'pw',

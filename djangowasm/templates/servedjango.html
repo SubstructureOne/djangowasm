@@ -1,0 +1,100 @@
+<html lang="en">
+<head>
+    <title>Django Server</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"></script>
+    <script>
+        async function fetch_and_unpack(pyodide, url) {
+            await pyodide.runPythonAsync(`
+                from pyodide.http import pyfetch
+                response = await pyfetch('${url}')
+                await response.unpack_archive()
+            `)
+        }
+
+        async function run_migrate(pyodide, settings_package) {
+            await pyodide.runPython(`
+                import os
+                from asgiref.sync import async_to_sync
+                from django.core.management import execute_from_command_line
+                os.environ.setdefault('DJANGO_SETTINGS_MODULE', '${settings_package}')
+                os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
+                execute_from_command_line(['manage.py', 'migrate'])
+            `)
+        }
+
+        async function generate_html(pyodide) {
+            return pyodide.runPython(`
+from io import StringIO
+
+from djangosample.wsgi import application
+
+inputstream = StringIO()
+errorstream = StringIO()
+
+env = {
+    'REQUEST_METHOD': 'GET',
+    'SCRIPT_NAME': '',
+    'PATH_INFO': '${window.location.pathname}',
+    'QUERY_STRING': '${window.location.search}',
+    'CONTENT_TYPE': '',
+    'CONTENT_LENGTH': '',
+    'SERVER_NAME': '${window.location.hostname}',
+    'SERVER_PORT': '${window.location.port}',
+    'SERVER_PROTOCOL': 'HTTP/1.1',
+    'wsgi.version': (1,0),
+    'wsgi.url_scheme': 'http',
+    'wsgi.input': inputstream,
+    'wsgi.error': errorstream,
+    'wsgi.multithreaded': False,
+    'wsgi.multiprocess': False,
+    'wsgi.run_once': False,
+}
+
+
+def write_callable(bytestring):
+    print(f'Bytestring: {bytestring}')
+    # pass
+
+
+def start_response(status, response_headers, exc_info=None):
+    print(f'Status: {status}')
+    print(f'Response headers: {response_headers}')
+    if exc_info is not None:
+        print(f'exc_info: {exc_info}')
+    return write_callable
+
+
+print(f'Calling Django application via WSGI...')
+result = application(env, start_response)
+print(f'Result:')
+final_result = b''
+for line in result:
+    print(line)
+    final_result += line
+final_result.decode()
+            `)
+        }
+
+        async function main() {
+            console.log("Loading pyodide")
+            let pyodide = await loadPyodide()
+            await pyodide.loadPackage('micropip')
+            const micropip = pyodide.pyimport('micropip')
+            {% for req in requirements %}
+                console.log(`Installing {{ req }}`)
+                await micropip.install('{{ req }}')
+            {% endfor %}
+            console.log("Fetching package")
+            await fetch_and_unpack(pyodide, '{{ package_url }}')
+            console.log("Running migration")
+            await run_migrate(pyodide, '{{ settings_package }}')
+            console.log("Generating HTML...")
+            const html = await generate_html(pyodide)
+            document.documentElement.innerHTML = html
+        }
+
+        main()
+    </script>
+</head>
+
+</html>

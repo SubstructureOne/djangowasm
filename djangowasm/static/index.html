@@ -8,17 +8,20 @@
             await pyodide.loadPackage('micropip')
             const micropip = pyodide.pyimport('micropip')
             await micropip.install('django')
-            await micropip.install('django_postgresql_pure')
+            await pyodide.loadPackage("https://files.pythonhosted.org/packages/1b/33/43c00a26f1154bc30651ce19d805edfb3823cfc526e42a5b0feade95fb5f/wasmsockets-0.1.4-py3-none-any.whl")
+            await micropip.install('django_postgresql_ws')
             console.log(pyodide.runPython(`
                 import sys
                 import django
                 f'Django installed: {sys.version}'
             `))
-            await pyodide.runPythonAsync(`
+            console.log(await pyodide.runPythonAsync(`
                 from pyodide.http import pyfetch
                 response = await pyfetch('/static/djangosample.zip')
                 await response.unpack_archive()
-            `)
+                import djangosample.wsgi
+                f'Django package installed'
+            `))
             // console.log(pyodide.runPython(`
             //     import djangosample.wsgi
             //     app = djangosample.wsgi.application
