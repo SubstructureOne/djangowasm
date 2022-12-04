@@ -84,6 +84,16 @@ final_result.decode()
                 console.log(`Installing {{ req }}`)
                 await micropip.install('{{ req }}')
             {% endfor %}
+            console.log(await pyodide.runPythonAsync(`
+                import pgwasm.dbapi
+                connection = pgwasm.dbapi.connect(
+                    'postgres',
+                    'http://localhost:6432',
+                    database='postgres',
+                    password='pw',
+                )
+                f'Connection: {connection}'
+            `))
             console.log("Fetching package")
             await fetch_and_unpack(pyodide, '{{ package_url }}')
             console.log("Running migration")
