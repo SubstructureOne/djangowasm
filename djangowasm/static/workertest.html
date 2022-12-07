@@ -1,19 +1,37 @@
 <html lang="en">
 <head>
     <title>Loading...</title>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"></script>
+<!--    <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"></script>-->
     <script>
         async function main() {
             console.log("Running main")
-            const worker = new Worker("/static/worker.js")
-            worker.onmessage = e => {
-                console.log(`Received message: ${e.data}`)
+            const channel = new MessageChannel()
+            const syncworker = new Worker("/static/syncworker.js")
+            const asyncworker = new Worker("/static/asyncworker.js")
+            const sync = new Int32Array(new SharedArrayBuffer(8))
+            const sab = new Uint8Array(new SharedArrayBuffer(1024))
+            const syncmsg = {
+                sending_port: channel.port1,
+                synchronization: sync,
+                receiving_buffer: sab,
             }
-            console.log("Posting message")
-            worker.postMessage([1, 3])
-            worker.postMessage("hello")
-            worker.postMessage("another")
-            console.log("All messages posted")
+            const asyncmsg = {
+                receiving_port: channel.port2,
+                synchronization: sync,
+                sending_buffer: sab,
+            }
+            console.log(`(M) Initializing Sync with ${JSON.stringify(syncmsg)}`)
+            asyncworker.postMessage(asyncmsg, [channel.port2])
+            syncworker.postMessage(syncmsg, [channel.port1])
+            console.log("Main is done")
+            // worker.onmessage = e => {
+            //     console.log(`Received message: ${e.data}`)
+            // }
+            // console.log("Posting message")
+            // worker.postMessage([1, 3])
+            // worker.postMessage("hello")
+            // worker.postMessage("another")
+            // console.log("All messages posted")
         }
         main()
     </script>
