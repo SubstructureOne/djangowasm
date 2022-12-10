@@ -3,25 +3,60 @@
     <title>Loading...</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"></script>
     <script>
+        function createWorker(workerFunc) {
+            const src = `(${workerFunc})();`;
+            const blob = new Blob([src], {type: 'application/javascript'});
+            const url = URL.createObjectURL(blob);
+            return new Worker(url);
+        }
+
         async function main() {
             let pyodide = await loadPyodide()
             await pyodide.loadPackage('micropip')
             // const micropip = pyodide.pyimport('micropip')
             // await micropip.install('wasmsockets==0.1.1')
-            await pyodide.loadPackage("https://files.pythonhosted.org/packages/e1/54/4ee8eca2097c0e1257f833197f787eeb29519f0fcd1423487d3e46dc82e3/wasmsockets-0.1.2-py3-none-any.whl")
-            await pyodide.runPythonAsync(`
+            await pyodide.loadPackage("/static/wasmsockets-0.1.4-py3-none-any.whl")
+            await pyodide.runPython(`
                 import wasmsockets.client
+                import wasmsockets.worker
+
                 import js
                 import pyodide.ffi
-
+                from pyodide.code import run_js
                 startupMessage = b'\\x00\\x00\\x00T\\x00\\x03\\x00\\x00user\\x00postgres\\x00database\\x00postgres\\x00application_name\\x00psql\\x00client_encoding\\x00UTF8\\x00\\x00'
-                # socket = connect('ws://localhost:8765')
-                socket = wasmsockets.client.connect('ws://localhost:6432')
-                await socket.send(pyodide.ffi.to_js(startupMessage))
-                js.console.log("Waiting for message received")
-                result = await socket.recv()
-                js.console.log(f'Result: {result}')
-                js.console.log(f'Type of converted bytes: {type(pyodide.ffi.to_js(b"ABC"))}')
+
+                async def test1():
+                    # socket = connect('ws://localhost:8765')
+                    socket = wasmsockets.client.connect('ws://localhost:6432')
+                    await socket.send(pyodide.ffi.to_js(startupMessage))
+                    js.console.log("Waiting for message received")
+                    result = await socket.recv()
+                    js.console.log(f'Result: {result}')
+                    js.console.log(f'Type of converted bytes: {type(pyodide.ffi.to_js(b"ABC"))}')
+
+
+
+                def test2():
+                    url = 'ws://localhost:8765'
+                    channel = js.MessageChannel.new()
+                    message_worker = wasmsockets.worker.websockets_worker(url)
+                    message_worker.postMessage({'abc': 'def'})
+                    sync = js.Int32Array.new(js.SharedArrayBuffer.new(8))
+                    buffer = js.Uint8Array.new(js.SharedArrayBuffer.new(1024))
+                    js.console.log("Buffers initialized")
+                    sync_client = wasmsockets.worker.SynchronousIOProxy(sync, buffer, channel.port2)
+                    js.console.log("Client created")
+                    #message_worker.postMessage(
+                        # {'sync': sync, 'buffer': buffer, 'receiving_port': channel.port1},
+                        #{},
+                        #[channel.port1]
+                    #)
+                    js.console.log("Message worker message posted")
+                    sync_client.send_message('hello there')
+                    response = sync_client.receive_message()
+                    js.console.log(f'Response: {response}')
+
+                test2()
             `)
         }
         main()

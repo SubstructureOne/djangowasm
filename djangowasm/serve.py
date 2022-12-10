@@ -15,9 +15,10 @@ def static_data(path):
 @app.route('/<path:path>')
 def catch_all(path):
     # return app.send_static_file('index.html')
-    # return app.send_static_file('postgrestest.html')
+    response = app.send_static_file('postgrestest.html')
     # return app.send_static_file('asynctest.html')
-    response = app.send_static_file('workertest.html')
+    # response = app.send_static_file('workertest.html')
+    response = app.send_static_file('servedjango.html')
     response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
     response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
     # response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
